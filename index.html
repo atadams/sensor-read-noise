@@ -464,6 +464,23 @@ h1 {
       black level line. That's why dark scenes have pixels near black level — <em>the scene content 
       is dark</em>, not because the camera always generates noise there.
     </p>
+    <p>
+      <span class="highlight">Why does the black level exist at all?</span> Because read noise is 
+      symmetric — it wobbles both above <em>and below</em> a pixel's true signal. If zero light 
+      mapped to ADU 0, negative noise excursions would clip (you can't record less than zero). 
+      So Canon places the black level at 1023 ADU, providing ~170σ of headroom below true zero. 
+      The "Dead Zone" between black level and image data isn't anomalous — it's just empty space 
+      between the noise floor pedestal and where actual photon signal begins. Arguing that noise 
+      should fill this gap is like arguing your thermometer is broken because it doesn't show 
+      readings between room temperature and the boiling point of water.
+    </p>
+    <p style="border: 1px solid rgba(79, 195, 247, 0.2); border-radius: 6px; padding: 12px; background: rgba(79, 195, 247, 0.03);">
+      <span class="highlight">▶ Try this:</span> Click a <span class="highlight-green">dark shadow</span> 
+      on the control image, then switch to the Jonas cloud photo and click any pixel. Compare the 
+      sigma distances. On the control, you'll find spots within 1–3σ of black level. On the cloud 
+      photo, <em>every pixel</em> is 30σ+ away — because the scene is uniformly bright, not because 
+      the file was manipulated.
+    </p>
   </div>
 
   <div class="source-info">
@@ -733,6 +750,10 @@ function drawBellCurve(aduValue) {
     ctx.lineTo(cx, yToCanvas(gaussian(sx, aduValue, SIGMA)));
     ctx.stroke();
     ctx.setLineDash([]);
+    
+    // Skip sigma label if it would overlap the black level label
+    const blCanvasX = xToCanvas(BLACK_LEVEL);
+    if (blCanvasX >= margin.left && blCanvasX <= margin.left + plotW && Math.abs(cx - blCanvasX) < 28) continue;
     
     ctx.fillStyle = 'rgba(79, 195, 247, 0.4)';
     ctx.fillText(s + 'σ', cx, margin.top + plotH + 12);
